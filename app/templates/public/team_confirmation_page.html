@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Team confirmation — {{ team.reference }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container-narrow">
+    <h1>Team registration</h1>
+    <div class="detail-panel">
+      <h2>{{ event.title }}</h2>
+      <p><strong>Team reference:</strong> {{ team.reference }}</p>
+      <p><strong>Team name:</strong> {{ team.team_name }}</p>
+      <p><strong>Leader:</strong> {{ team.leader_name }} ({{ team.leader_normalized_email }})</p>
+      {% if team.leader_phone %}<p><strong>Leader phone:</strong> {{ team.leader_phone }}</p>{% endif %}
+      {% if team.members %}
+        <h3 class="mt-2">Members ({{ team.members|length }})</h3>
+        <ul>
+          {% for m in team.members %}
+            <li>{{ m.full_name }} ({{ m.email }}) — {{ m.role|capitalize }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <p><strong>Registered at:</strong> {{ registered_display.strftime('%d %b %Y %H:%M') if registered_display else '' }}</p>
+      <p><strong>Status:</strong> {{ team.status|capitalize }}</p>
+    </div>
+    <a class="btn btn-primary mt-2" href="{{ url_for('public.index') }}">Back to home</a>
+  </div>
+</section>
+{% endblock %}

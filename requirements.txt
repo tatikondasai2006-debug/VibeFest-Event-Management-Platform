@@ -1,0 +1,9 @@
+Flask>=3.0,<4
+Flask-SQLAlchemy>=3.1,<4
+Flask-Migrate>=4.0,<5
+Flask-Login>=0.6,<1
+Flask-WTF>=1.2,<2
+Flask-Limiter>=3.5,<5
+python-dotenv>=1.0,<2
+tzdata>=2024.1; sys_platform == "win32"
+pytest>=8.0,<10

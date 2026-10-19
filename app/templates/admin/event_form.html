@@ -1,0 +1,138 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ 'Edit' if event else 'New' }} event{% endblock %}
+{% block page_title %}{{ 'Edit event' if event else 'New event' }}{% endblock %}
+{% block content %}
+<div class="panel">
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input class="form-control" id="title" name="title" value="{{ form_values.get('title', event.title if event else '') }}" aria-invalid="{{ 'true' if errors.get('title') else 'false' }}">
+      {% if errors.get('title') %}<div class="field-error">{{ errors.title }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea class="form-control" id="description" name="description">{{ form_values.get('description', event.description if event else '') }}</textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="category">Category *</label>
+        <select class="form-control" id="category" name="category" aria-invalid="{{ 'true' if errors.get('category') else 'false' }}">
+          {% set current_category = form_values.get('category', event.category if event else 'techverse') %}
+          {% for value, label in categories %}
+            <option value="{{ value }}" {% if current_category == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.get('category') %}<div class="field-error">{{ errors.category }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="capacity">Capacity * ({{ 'current: ' ~ event.capacity if event else 'seats' }})</label>
+        <input class="form-control" id="capacity" name="capacity" type="number" min="1" value="{{ form_values.get('capacity', event.capacity if event else 50) }}" aria-invalid="{{ 'true' if errors.get('capacity') else 'false' }}">
+        {% if errors.get('capacity') %}<div class="field-error">{{ errors.capacity }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="venue">Venue</label>
+        <input class="form-control" id="venue" name="venue" value="{{ form_values.get('venue', event.venue if event and event.venue else '') }}">
+      </div>
+      <div class="form-group">
+        <label for="organizer">Organizer</label>
+        <input class="form-control" id="organizer" name="organizer" value="{{ form_values.get('organizer', event.organizer if event and event.organizer else '') }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="starts_at">Starts at *</label>
+        <input class="form-control" id="starts_at" name="starts_at" type="datetime-local" value="{{ form_values.get('starts_at', starts_value if starts_value is defined else '') }}" aria-invalid="{{ 'true' if errors.get('starts_at') else 'false' }}">
+        {% if errors.get('starts_at') %}<div class="field-error">{{ errors.starts_at }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="ends_at">Ends at *</label>
+        <input class="form-control" id="ends_at" name="ends_at" type="datetime-local" value="{{ form_values.get('ends_at', ends_value if ends_value is defined else '') }}" aria-invalid="{{ 'true' if errors.get('ends_at') else 'false' }}">
+        {% if errors.get('ends_at') %}<div class="field-error">{{ errors.ends_at }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="registration_deadline">Registration deadline (optional)</label>
+      <input class="form-control" id="registration_deadline" name="registration_deadline" type="datetime-local" value="{{ form_values.get('registration_deadline', deadline_value if deadline_value is defined else '') }}">
+      {% if errors.get('registration_deadline') %}<div class="field-error">{{ errors.registration_deadline }}</div>{% endif %}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="registration_mode">Registration mode *</label>
+        <select class="form-control" id="registration_mode" name="registration_mode" aria-invalid="{{ 'true' if errors.get('registration_mode') else 'false' }}">
+          {% set current_mode = form_values.get('registration_mode', event.registration_mode if event else 'individual') %}
+          {% for value, label in modes %}
+            <option value="{{ value }}" {% if current_mode == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.get('registration_mode') %}<div class="field-error">{{ errors.registration_mode }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="capacity_unit">Capacity unit</label>
+        <select class="form-control" id="capacity_unit" name="capacity_unit">
+          {% set current_unit = form_values.get('capacity_unit', event.capacity_unit if event else 'seats') %}
+          <option value="seats" {% if current_unit == 'seats' %}selected{% endif %}>Seats</option>
+          <option value="entries" {% if current_unit == 'entries' %}selected{% endif %}>Entries</option>
+          <option value="teams" {% if current_unit == 'teams' %}selected{% endif %}>Teams</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="status">Status *</label>
+        <select class="form-control" id="status" name="status">
+          {% set current_status = form_values.get('status', event.status if event else 'draft') %}
+          <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>Draft</option>
+          <option value="published" {% if current_status == 'published' %}selected{% endif %}>Published</option>
+          <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="registration_status">Registration status *</label>
+        <select class="form-control" id="registration_status" name="registration_status">
+          {% set current_reg = form_values.get('registration_status', event.registration_status if event else 'open') %}
+          <option value="open" {% if current_reg == 'open' %}selected{% endif %}>Open</option>
+          <option value="closed" {% if current_reg == 'closed' %}selected{% endif %}>Closed</option>
+        </select>
+      </div>
+    </div>
+
+    <fieldset class="form-group" style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
+      <legend style="font-weight:700;padding:0 6px">Team size (team mode only)</legend>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="team_min_size">Minimum members (incl. leader)</label>
+          <input class="form-control" id="team_min_size" name="team_min_size" type="number" min="1" value="{{ form_values.get('team_min_size', event.team_min_size if event else 2) }}">
+        </div>
+        <div class="form-group">
+          <label for="team_max_size">Maximum members (incl. leader)</label>
+          <input class="form-control" id="team_max_size" name="team_max_size" type="number" min="1" value="{{ form_values.get('team_max_size', event.team_max_size if event else 5) }}" aria-invalid="{{ 'true' if errors.get('team_max_size') else 'false' }}">
+          {% if errors.get('team_max_size') %}<div class="field-error">{{ errors.team_max_size }}</div>{% endif %}
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-group">
+      <label for="custom_fields_json">Custom fields (JSON, optional, advanced)</label>
+      <textarea class="form-control" id="custom_fields_json" name="custom_fields_json" rows="5" style="font-family:monospace;font-size:0.85rem" aria-invalid="{{ 'true' if errors.get('custom_fields_json') else 'false' }}" placeholder='[{"key":"dietary","label":"Dietary needs","type":"text","required":false,"max_length":200,"options":[]}]'>{{ form_values.get('custom_fields_json', custom_fields_json if custom_fields_json is defined else '[]') }}</textarea>
+      <div class="hint">Array of objects: key (lowercase_snake), label, type (text|select|checkbox), required (bool), max_length (1-500), options (list, required for type=select). Leave as [] for no custom fields.</div>
+      {% if errors.get('custom_fields_json') %}<div class="field-error">{{ errors.custom_fields_json }}</div>{% endif %}
+    </div>
+
+    <div class="mt-3" style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" type="submit">{{ 'Save changes' if event else 'Create event' }}</button>
+      <a class="btn btn-outline" href="{{ url_for('admin.event_detail', event_id=event.id) if event else url_for('admin.events_list') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

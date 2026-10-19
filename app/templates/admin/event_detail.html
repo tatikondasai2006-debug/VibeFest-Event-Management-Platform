@@ -1,0 +1,128 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block page_title %}{{ event.title }}{% endblock %}
+{% block page_actions %}
+  <a class="btn btn-outline btn-sm" href="{{ url_for('admin.event_edit', event_id=event.id) }}">Edit</a>
+  {% if event.status == 'draft' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.event_publish', event_id=event.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-success btn-sm" type="submit">Publish</button>
+    </form>
+  {% endif %}
+  {% if event.registration_status == 'open' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.event_close', event_id=event.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-outline btn-sm" type="submit">Close registration</button>
+    </form>
+  {% elif event.status != 'cancelled' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.event_reopen', event_id=event.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-outline btn-sm" type="submit">Reopen registration</button>
+    </form>
+  {% endif %}
+  {% if event.status != 'cancelled' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.event_cancel', event_id=event.id) }}" data-cancel-form data-cancel-message="Cancel '{{ event.title }}'? This cannot be undone.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="confirm_title" value="{{ event.title }}">
+      <button class="btn btn-danger btn-sm" type="submit">Cancel event</button>
+    </form>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi-card accent-orange">
+    <div class="kpi-label">Status</div>
+    <div class="kpi-value"><span class="badge badge-{{ event.status }}">{{ event.status|capitalize }}</span></div>
+  </div>
+  <div class="kpi-card accent-aqua">
+    <div class="kpi-label">Registration</div>
+    <div class="kpi-value"><span class="badge badge-{{ event.registration_status }}">{{ event.registration_status|capitalize }}</span></div>
+  </div>
+  <div class="kpi-card accent-orchid">
+    <div class="kpi-label">Used / capacity</div>
+    <div class="kpi-value">{{ used }} / {{ event.capacity }}</div>
+  </div>
+  <div class="kpi-card accent-lime">
+    <div class="kpi-label">Seats left</div>
+    <div class="kpi-value">{{ seats_left }}</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Details</h2>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><th>Slug</th><td>{{ event.slug }}</td></tr>
+        <tr><th>Category</th><td>{{ category_label }}</td></tr>
+        <tr><th>Mode</th><td>{{ event.mode_label }}</td></tr>
+        <tr><th>Starts</th><td>{{ starts_display.strftime('%d %b %Y %H:%M') if starts_display else '—' }}</td></tr>
+        <tr><th>Ends</th><td>{{ ends_display.strftime('%d %b %Y %H:%M') if ends_display else '—' }}</td></tr>
+        <tr><th>Registration deadline</th><td>{{ deadline_display.strftime('%d %b %Y %H:%M') if deadline_display else '—' }}</td></tr>
+        <tr><th>Venue</th><td>{{ event.venue or '—' }}</td></tr>
+        <tr><th>Organizer</th><td>{{ event.organizer or '—' }}</td></tr>
+        {% if event.is_demo %}<tr><th>Demo data</th><td><span class="badge badge-demo">Demo</span></td></tr>{% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% if event.description %}
+    <p class="mt-2" style="white-space:pre-wrap">{{ event.description }}</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Registrations (latest 50)</h2>
+  {% if registrations %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ref</th><th>Name</th><th>Email</th><th>Status</th><th>Registered</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for r in registrations %}
+            <tr>
+              <td>{{ r.reference }}</td>
+              <td>{{ r.full_name }}</td>
+              <td>{{ r.email }}</td>
+              <td><span class="badge badge-{{ r.status }}">{{ r.status|capitalize }}</span>{% if r.is_demo %} <span class="badge badge-demo">Demo</span>{% endif %}</td>
+              <td>{{ r.created_at.strftime('%d %b %Y %H:%M') }}</td>
+              <td><a class="btn btn-outline btn-sm" href="{{ url_for('admin.applicant_detail', reg_id=r.id) }}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No registrations yet.</p>
+  {% endif %}
+</div>
+
+{% if event.registration_mode == 'team' %}
+<div class="panel">
+  <h2>Teams (latest 50)</h2>
+  {% if teams %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ref</th><th>Team</th><th>Leader</th><th>Status</th><th>Registered</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for t in teams %}
+            <tr>
+              <td>{{ t.reference }}</td>
+              <td>{{ t.team_name }}</td>
+              <td>{{ t.leader_name }} ({{ t.leader_normalized_email }})</td>
+              <td><span class="badge badge-{{ t.status }}">{{ t.status|capitalize }}</span>{% if t.is_demo %} <span class="badge badge-demo">Demo</span>{% endif %}</td>
+              <td>{{ t.created_at.strftime('%d %b %Y %H:%M') }}</td>
+              <td><a class="btn btn-outline btn-sm" href="{{ url_for('admin.team_detail', team_id=t.id) }}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No teams registered yet.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

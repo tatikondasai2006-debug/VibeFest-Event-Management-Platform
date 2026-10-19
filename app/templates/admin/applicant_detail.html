@@ -1,0 +1,52 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ registration.reference }}{% endblock %}
+{% block page_title %}Applicant · {{ registration.reference }}{% endblock %}
+{% block page_actions %}
+  <a class="btn btn-outline btn-sm" href="{{ url_for('admin.applicants') }}">Back to applicants</a>
+  {% if registration.status != 'cancelled' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.registration_cancel', reg_id=registration.id) }}" data-cancel-form data-cancel-message="Cancel registration {{ registration.reference }}?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-danger btn-sm" type="submit">Cancel registration</button>
+    </form>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="panel">
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><th>Reference</th><td>{{ registration.reference }}</td></tr>
+        <tr><th>Status</th><td><span class="badge badge-{{ registration.status }}">{{ registration.status|capitalize }}</span>{% if registration.is_demo %} <span class="badge badge-demo">Demo</span>{% endif %}</td></tr>
+        <tr><th>Event</th><td>{% if event %}<a href="{{ url_for('admin.event_detail', event_id=event.id) }}">{{ event.title }}</a>{% else %}—{% endif %}</td></tr>
+        <tr><th>Full name</th><td>{{ registration.full_name }}</td></tr>
+        <tr><th>Email</th><td>{{ registration.email }}</td></tr>
+        <tr><th>Phone</th><td>{{ registration.phone }}</td></tr>
+        <tr><th>College</th><td>{{ registration.college or '—' }}</td></tr>
+        <tr><th>Department</th><td>{{ registration.department or '—' }}</td></tr>
+        <tr><th>Year of study</th><td>{{ registration.year_of_study or '—' }}</td></tr>
+        <tr><th>Registered</th><td>{{ registered_display.strftime('%d %b %Y %H:%M') if registered_display else '—' }}</td></tr>
+        <tr><th>Consent</th><td>{{ 'Given' if registration.consent else 'Not given' }}{% if consent_display %} ({{ consent_display.strftime('%d %b %Y %H:%M') }}){% endif %}</td></tr>
+        {% if registration.cancelled_at %}
+          <tr><th>Cancelled</th><td>{{ registration.cancelled_at.strftime('%d %b %Y %H:%M') }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if registration.answers %}
+<div class="panel">
+  <h2>Custom field answers</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Answer</th></tr></thead>
+      <tbody>
+        {% for a in registration.answers %}
+          <tr><td>{{ a.field_label }}</td><td>{{ a.value_text }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Register — {{ event.title }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="register-wrap">
+      <div class="detail-panel">
+        <h2>About this event</h2>
+        <h3>{{ event.title }}</h3>
+        <p>{{ event.description }}</p>
+        <div class="detail-facts">
+          <div class="fact"><strong>{{ starts_display.strftime('%a %d %b %Y %H:%M') if starts_display else '' }}</strong><span>Starts</span></div>
+          <div class="fact"><strong>{{ event.mode_label }}</strong><span>Type</span></div>
+          <div class="fact"><strong>{{ event.capacity }} {{ event.capacity_unit }}</strong><span>Capacity</span></div>
+        </div>
+      </div>
+
+      <div class="detail-panel">
+        <h2>Registration form</h2>
+        {% if errors and errors.form %}
+          <div class="alert alert-error">{{ errors.form }}</div>
+        {% endif %}
+        {% if not registration_allowed %}
+          <div class="alert alert-warning">{{ closed_reason }}</div>
+        {% endif %}
+        <form method="post" novalidate {% if event.registration_mode == 'team' %}data-team-form data-min="{{ event.team_min_size }}" data-max="{{ event.team_max_size }}"{% endif %}>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {% if event.registration_mode == 'team' %}
+            <fieldset>
+              <legend style="font-weight:700">Team details</legend>
+              <div class="form-group">
+                <label for="team_name">Team name</label>
+                <input class="form-control" id="team_name" name="team_name" required maxlength="120" value="{{ form_values.get('team_name','') }}">
+              </div>
+            </fieldset>
+          {% endif %}
+
+          <fieldset style="margin-top:1.2rem">
+            <legend style="font-weight:700">{% if event.registration_mode == 'team' %}Team leader details{% else %}Your details{% endif %}</legend>
+            <div class="form-group">
+              <label for="full_name">{% if event.registration_mode == 'team' %}Leader full name{% else %}Full name{% endif %}</label>
+              <input class="form-control" id="full_name" name="full_name" required maxlength="120" value="{{ form_values.get('full_name','') }}" aria-invalid="{{ 'true' if errors.full_name else 'false' }}">
+              {% if errors.full_name %}<div class="field-error">{{ errors.full_name }}</div>{% endif %}
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input class="form-control" type="email" id="email" name="email" required maxlength="200" value="{{ form_values.get('email','') }}" aria-invalid="{{ 'true' if errors.email else 'false' }}">
+                {% if errors.email %}<div class="field-error">{{ errors.email }}</div>{% endif %}
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone</label>
+                <input class="form-control" type="tel" id="phone" name="phone" required maxlength="30" value="{{ form_values.get('phone','') }}" aria-invalid="{{ 'true' if errors.phone else 'false' }}">
+                {% if errors.phone %}<div class="field-error">{{ errors.phone }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="college">College / Institution</label>
+                <input class="form-control" id="college" name="college" maxlength="200" value="{{ form_values.get('college','') }}">
+              </div>
+              <div class="form-group">
+                <label for="department">Department (optional)</label>
+                <input class="form-control" id="department" name="department" maxlength="120" value="{{ form_values.get('department','') }}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="year_of_study">Year of study (optional)</label>
+              <input class="form-control" id="year_of_study" name="year_of_study" maxlength="30" value="{{ form_values.get('year_of_study','') }}">
+            </div>
+          </fieldset>
+
+          {% if event.registration_mode == 'team' %}
+            <fieldset style="margin-top:1.2rem">
+              <legend style="font-weight:700">Team members (min {{ event.team_min_size }}, max {{ event.team_max_size }})</legend>
+              <div data-member-list></div>
+              <button type="button" class="btn btn-outline btn-sm mt-1" data-add-member>Add team member</button>
+              {% if errors.members %}<div class="field-error mt-1">{{ errors.members }}</div>{% endif %}
+            </fieldset>
+          {% endif %}
+
+          {% if custom_fields %}
+            <fieldset style="margin-top:1.2rem">
+              <legend style="font-weight:700">Event-specific questions</legend>
+              {% for f in custom_fields %}
+                {% set key = 'cf_' + f.key %}
+                {% set val = form_values.get(key, '') %}
+                <div class="form-group">
+                  <label for="{{ key }}">{{ f.label }}{% if f.required %} <span class="text-muted">(required)</span>{% endif %}</label>
+                  {% if f.type == 'text' %}
+                    <input class="form-control" id="{{ key }}" name="{{ key }}" {% if f.required %}required{% endif %} maxlength="{{ f.max_length }}" value="{{ val }}">
+                  {% elif f.type == 'select' %}
+                    <select class="form-control" id="{{ key }}" name="{{ key }}" {% if f.required %}required{% endif %}>
+                      <option value="">Choose…</option>
+                      {% for o in f.options %}
+                        <option value="{{ o }}" {% if val == o %}selected{% endif %}>{{ o }}</option>
+                      {% endfor %}
+                    </select>
+                  {% elif f.type == 'checkbox' %}
+                    <label class="checkbox-row"><input type="checkbox" name="{{ key }}" value="on" {% if val %}checked{% endif %}> {{ f.label }}</label>
+                  {% endif %}
+                  {% if errors.get(f.key) %}<div class="field-error">{{ errors.get(f.key) }}</div>{% endif %}
+                </div>
+              {% endfor %}
+            </fieldset>
+          {% endif %}
+
+          <fieldset style="margin-top:1.2rem">
+            <div class="checkbox-group">
+              <label>
+                <input type="checkbox" name="consent" required {% if form_values.get('consent') %}checked{% endif %}>
+                I consent to the collection and use of my details for registration and event communications.
+              </label>
+            </div>
+            {% if errors.consent %}<div class="field-error">{{ errors.consent }}</div>{% endif %}
+          </fieldset>
+
+          <button type="submit" class="btn btn-primary btn-block mt-3" {% if not registration_allowed %}disabled{% endif %}>
+            {% if event.registration_mode == 'team' %}Register team{% else %}Register now{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

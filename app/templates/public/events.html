@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Events — {{ settings.festival_name }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h1>All events</h1>
+      <p>Search and filter published events. Counts update live from the database.</p>
+    </div>
+
+    <form method="get" class="filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:1.6rem">
+      <div class="form-group" style="margin:0;flex:2;min-width:200px">
+        <label for="q">Search</label>
+        <input class="form-control" type="search" id="q" name="q" value="{{ search_query }}" placeholder="Event name, venue…">
+      </div>
+      <div class="form-group" style="margin:0;flex:1;min-width:160px">
+        <label for="category">Category</label>
+        <select class="form-control" id="category" name="category">
+          <option value="">All categories</option>
+          {% for key, label in categories %}
+            <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;flex:1;min-width:150px">
+        <label for="availability">Availability</label>
+        <select class="form-control" id="availability" name="availability">
+          <option value="">Any</option>
+          <option value="open" {% if selected_availability == 'open' %}selected{% endif %}>Open only</option>
+          <option value="full" {% if selected_availability == 'full' %}selected{% endif %}>Full only</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Filter</button>
+      {% if search_query or selected_category or selected_availability %}
+        <a class="btn btn-outline" href="{{ url_for('public.events') }}">Reset</a>
+      {% endif %}
+    </form>
+
+    {% if cards %}
+      <div class="event-grid">
+        {% for card in cards %}
+          {% include "public/_event_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No events match your filters</h3>
+        <p>Try clearing the search or category filter.</p>
+        <a class="btn btn-primary mt-2" href="{{ url_for('public.events') }}">Show all events</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ---------- Festival schedule timeline (real data only) ---------- #}
+{% if cards %}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <h2>Festival schedule</h2>
+      <p>A chronological view of every published event.</p>
+    </div>
+    {% set sorted = cards | sort(attribute='starts_display') %}
+    {% set ns = namespace(last_day='') %}
+    <ol style="list-style:none;padding:0;margin:0;border-left:3px solid var(--border);margin-left:12px">
+      {% for card in sorted %}
+        {% set day = card.starts_display.strftime('%A %d %B %Y') if card.starts_display else '' %}
+        {% if day != ns.last_day %}
+          {% set ns.last_day = day %}
+          <li style="padding:1.2rem 0 0.4rem 1.2rem;font-weight:800;color:var(--charcoal)">{{ day }}</li>
+        {% endif %}
+        <li style="padding:0.6rem 0 0.6rem 1.2rem;position:relative">
+          <span style="position:absolute;left:-9px;top:1rem;width:12px;height:12px;border-radius:50%;background:var(--orange);border:2px solid var(--white)"></span>
+          <strong>{{ card.starts_display.strftime('%H:%M') if card.starts_display else '' }}</strong>
+          <a href="{{ url_for('public.event_detail', slug=card.event.slug) }}" style="font-weight:600">{{ card.event.title }}</a>
+          {% if card.event.venue %} <span class="text-muted">· {{ card.event.venue }}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

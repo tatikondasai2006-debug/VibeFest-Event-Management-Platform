@@ -1,0 +1,88 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi-card accent-orange">
+    <div class="kpi-label">Individual registrations</div>
+    <div class="kpi-value">{{ metrics.total_individual }}</div>
+  </div>
+  <div class="kpi-card accent-aqua">
+    <div class="kpi-label">Team registrations</div>
+    <div class="kpi-value">{{ metrics.total_teams }}</div>
+  </div>
+  <div class="kpi-card accent-orchid">
+    <div class="kpi-label">Combined</div>
+    <div class="kpi-value">{{ metrics.total_combined }}</div>
+  </div>
+  <div class="kpi-card accent-lime">
+    <div class="kpi-label">Today (individual + teams)</div>
+    <div class="kpi-value">{{ metrics.today_combined }}</div>
+  </div>
+  <div class="kpi-card accent-success">
+    <div class="kpi-label">Published events</div>
+    <div class="kpi-value">{{ metrics.published_events }}</div>
+  </div>
+  <div class="kpi-card accent-orange">
+    <div class="kpi-label">Upcoming</div>
+    <div class="kpi-value">{{ metrics.upcoming_events }}</div>
+  </div>
+  <div class="kpi-card accent-aqua">
+    <div class="kpi-label">Capacity used / total</div>
+    <div class="kpi-value">{{ metrics.total_used }} / {{ metrics.total_capacity }}</div>
+  </div>
+  <div class="kpi-card accent-orchid">
+    <div class="kpi-label">Utilisation</div>
+    <div class="kpi-value">{{ metrics.utilization }}%</div>
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Registrations over time (last 14 days)</h3>
+    <canvas id="chartOverTime"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Registrations by event</h3>
+    <canvas id="chartByEvent"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Registrations by category</h3>
+    <canvas id="chartByCategory"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Capacity utilisation by event</h3>
+    <canvas id="chartUtilisation"></canvas>
+  </div>
+</div>
+<script type="application/json" id="chart-over-time">{{ over_time|safe }}</script>
+<script type="application/json" id="chart-by-event">{{ by_event|safe }}</script>
+<script type="application/json" id="chart-by-category">{{ by_category|safe }}</script>
+<script type="application/json" id="chart-utilisation">{{ utilisation|safe }}</script>
+
+<div class="panel">
+  <h2>Recent registrations</h2>
+  {% if recent %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ref</th><th>Event</th><th>Name</th><th>Email</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          {% for r in recent %}
+            <tr>
+              <td>{{ r.reference }}</td>
+              <td>{{ r.event.title }}</td>
+              <td>{{ r.full_name }}</td>
+              <td>{{ r.email }}</td>
+              <td>{{ r.created_at.strftime('%d %b %Y %H:%M') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No registrations yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

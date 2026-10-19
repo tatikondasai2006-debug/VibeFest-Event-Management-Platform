@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}About — {{ settings.festival_name }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container-narrow prose">
+    <h1>About the festival</h1>
+    <p>{{ settings.festival_name }} is a college techno-cultural festival built around the idea of finding your vibe and owning the stage. It brings together competitions, showcases, workshops and performances across five distinct categories.</p>
+    <p>All registrations are managed through EventHub with accurate, database-backed capacity tracking, unique confirmation references and secure administrator tools.</p>
+    {% if settings.college_name %}<p>Organised by {{ settings.college_name }}.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}

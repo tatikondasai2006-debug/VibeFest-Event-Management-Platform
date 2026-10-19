@@ -1,0 +1,30 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Login · EventHub{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>EventHub Admin</h1>
+    <p class="sub">Sign in to manage events and registrations</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input class="form-control" id="username" name="username" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input class="form-control" type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

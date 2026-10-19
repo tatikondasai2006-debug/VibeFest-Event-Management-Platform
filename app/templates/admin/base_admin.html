@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admin{% endblock %} · EventHub</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <a class="brand" href="{{ url_for('admin.dashboard') }}">Event<span>Hub</span></a>
+    <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="admin-nav" style="margin:8px 1rem">Menu</button>
+    <nav class="admin-nav" id="admin-nav" aria-label="Admin">
+      <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('admin.events_list') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('admin.event') }}">Events</a>
+      <a href="{{ url_for('admin.applicants') }}" class="{{ 'active' if request.endpoint and ('applicant' in request.endpoint or 'team_detail' in request.endpoint) }}">Applicants</a>
+      <a href="{{ url_for('admin.analytics_page') }}" class="{{ 'active' if request.endpoint == 'admin.analytics_page' }}">Analytics</a>
+      <a href="{{ url_for('admin.reports') }}" class="{{ 'active' if request.endpoint and 'report' in request.endpoint }}">Reports</a>
+      <a href="{{ url_for('admin.settings') }}" class="{{ 'active' if request.endpoint and 'settings' in request.endpoint or 'password' in (request.endpoint or '') }}">Settings</a>
+    </nav>
+    <div class="side-foot">
+      <div class="text-muted mb-1">{{ current_user.username }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline btn-sm" style="color:#D8D2E0;border-color:rgba(255,255,255,0.3)">Sign out</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+      <div>{% block page_actions %}{% endblock %}</div>
+    </header>
+    <div class="admin-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div role="status">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Events{% endblock %}
+{% block page_title %}Events{% endblock %}
+{% block page_actions %}
+  <a class="btn btn-primary" href="{{ url_for('admin.event_new') }}">New event</a>
+{% endblock %}
+{% block content %}
+<div class="panel">
+  <form class="filter-bar" method="get">
+    <div class="form-group" style="min-width:200px;flex:2">
+      <label for="q">Search</label>
+      <input class="form-control" id="q" name="q" value="{{ search_query }}" placeholder="Title or slug">
+    </div>
+    <div class="form-group" style="min-width:140px">
+      <label for="status">Status</label>
+      <select class="form-control" id="status" name="status">
+        <option value="">All</option>
+        <option value="draft" {% if selected_status=='draft' %}selected{% endif %}>Draft</option>
+        <option value="published" {% if selected_status=='published' %}selected{% endif %}>Published</option>
+        <option value="cancelled" {% if selected_status=='cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Filter</button>
+    {% if search_query or selected_status %}
+      <a class="btn btn-outline" href="{{ url_for('admin.events_list') }}">Reset</a>
+    {% endif %}
+  </form>
+
+  {% if rows %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Title</th><th>Category</th><th>Starts</th><th>Mode</th><th>Status</th><th>Registrations</th><th>Capacity</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td><a href="{{ url_for('admin.event_detail', event_id=row.event.id) }}">{{ row.event.title }}</a>{% if row.event.is_demo %} <span class="badge badge-demo">Demo</span>{% endif %}</td>
+              <td>{{ row.category_label }}</td>
+              <td>{{ row.starts_display.strftime('%d %b %Y %H:%M') if row.starts_display else '' }}</td>
+              <td>{{ row.event.mode_label }}</td>
+              <td><span class="badge badge-{{ row.event.status }}">{{ row.event.status|capitalize }}</span></td>
+              <td>{{ row.used }} / {{ row.event.capacity }}</td>
+              <td>{{ row.seats_left }} left</td>
+              <td><a class="btn btn-outline btn-sm" href="{{ url_for('admin.event_detail', event_id=row.event.id) }}">Manage</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state"><h3>No events found</h3><p>Create your first event to get started.</p><a class="btn btn-primary mt-2" href="{{ url_for('admin.event_new') }}">New event</a></div>
+  {% endif %}
+</div>
+{% endblock %}

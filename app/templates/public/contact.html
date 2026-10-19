@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Contact — {{ settings.festival_name }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container-narrow prose">
+    <h1>Contact</h1>
+    <p>Have a question about an event or registration? Get in touch.</p>
+    {% if settings.contact_email %}
+      <p>Email: <a href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a></p>
+    {% endif %}
+    {% if settings.contact_phone %}
+      <p>Phone: {{ settings.contact_phone }}</p>
+    {% endif %}
+    {% if settings.college_name %}
+      <p>{{ settings.college_name }}</p>
+    {% endif %}
+    {% if settings.venue %}
+      <p>Venue: {{ settings.venue }}</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

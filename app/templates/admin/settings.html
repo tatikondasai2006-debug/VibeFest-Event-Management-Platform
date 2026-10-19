@@ -1,0 +1,95 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>Festival details</h2>
+  <form method="post" action="{{ url_for('admin.settings') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="festival_name">Festival name *</label>
+        <input class="form-control" id="festival_name" name="festival_name" value="{{ settings.festival_name }}" required>
+      </div>
+      <div class="form-group">
+        <label for="tagline">Tagline</label>
+        <input class="form-control" id="tagline" name="tagline" value="{{ settings.tagline }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="start_date">Festival start date</label>
+        <input class="form-control" id="start_date" name="start_date" type="date" value="{{ settings.start_date.isoformat() if settings.start_date else '' }}">
+        <div class="hint">Leave empty until dates are officially confirmed.</div>
+      </div>
+      <div class="form-group">
+        <label for="end_date">Festival end date</label>
+        <input class="form-control" id="end_date" name="end_date" type="date" value="{{ settings.end_date.isoformat() if settings.end_date else '' }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="venue">Venue</label>
+        <input class="form-control" id="venue" name="venue" value="{{ settings.venue or '' }}">
+      </div>
+      <div class="form-group">
+        <label for="college_name">College name</label>
+        <input class="form-control" id="college_name" name="college_name" value="{{ settings.college_name or '' }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="contact_email">Contact email</label>
+        <input class="form-control" id="contact_email" name="contact_email" type="email" value="{{ settings.contact_email or '' }}">
+      </div>
+      <div class="form-group">
+        <label for="contact_phone">Contact phone</label>
+        <input class="form-control" id="contact_phone" name="contact_phone" value="{{ settings.contact_phone or '' }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="display_timezone">Display timezone (IANA)</label>
+        <input class="form-control" id="display_timezone" name="display_timezone" value="{{ settings.display_timezone }}">
+        <div class="hint">e.g. Asia/Kolkata, America/New_York. Used for all displayed times.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="registration_instructions">Registration instructions (shown to attendees)</label>
+      <textarea class="form-control" id="registration_instructions" name="registration_instructions" rows="4">{{ settings.registration_instructions or '' }}</textarea>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save settings</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Change admin password</h2>
+  <form method="post" action="{{ url_for('admin.change_password') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="current_password">Current password</label>
+        <input class="form-control" id="current_password" name="current_password" type="password" required autocomplete="current-password">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="new_password">New password</label>
+        <input class="form-control" id="new_password" name="new_password" type="password" required minlength="8" autocomplete="new-password">
+        <div class="hint">At least 8 characters.</div>
+      </div>
+      <div class="form-group">
+        <label for="confirm_password">Confirm new password</label>
+        <input class="form-control" id="confirm_password" name="confirm_password" type="password" required minlength="8" autocomplete="new-password">
+      </div>
+    </div>
+    <button class="btn btn-secondary" type="submit">Update password</button>
+  </form>
+</div>
+{% endblock %}

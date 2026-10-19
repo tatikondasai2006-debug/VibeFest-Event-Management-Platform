@@ -1,0 +1,62 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block content %}
+<div class="panel">
+  <h2>Export CSV</h2>
+  <p class="text-muted">Exports use whitelisted columns with formula-injection guards. Demo registrations can be included or excluded.</p>
+  <form class="filter-bar" method="get" action="{{ url_for('admin.reports_export') }}">
+    <div class="form-group" style="min-width:160px">
+      <label for="kind">Report</label>
+      <select class="form-control" id="kind" name="kind">
+        <option value="registrations">Individual registrations</option>
+        <option value="teams">Teams</option>
+      </select>
+    </div>
+    <div class="form-group" style="min-width:180px">
+      <label for="event_id">Event</label>
+      <select class="form-control" id="event_id" name="event_id">
+        <option value="">All events</option>
+        {% for ev in events %}
+          <option value="{{ ev.id }}">{{ ev.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="min-width:130px">
+      <label for="status">Status</label>
+      <select class="form-control" id="status" name="status">
+        <option value="">All</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="form-group" style="min-width:120px">
+      <label for="demo">Demo data</label>
+      <select class="form-control" id="demo" name="demo">
+        <option value="1">Include</option>
+        <option value="0">Hide</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Download CSV</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Report guide</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Report</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Individual registrations</td>
+          <td>One row per individual registration: reference, event, category, contact details, status, timestamp.</td>
+        </tr>
+        <tr>
+          <td>Teams</td>
+          <td>One row per team: reference, event, team name, leader contact, member count, status, timestamp.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

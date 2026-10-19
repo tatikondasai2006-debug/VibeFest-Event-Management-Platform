@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ team.team_name }}{% endblock %}
+{% block page_title %}Team · {{ team.team_name }}{% endblock %}
+{% block page_actions %}
+  <a class="btn btn-outline btn-sm" href="{{ url_for('admin.applicants') }}">Back to applicants</a>
+  {% if team.status != 'cancelled' %}
+    <form class="inline-form" method="post" action="{{ url_for('admin.team_cancel', team_id=team.id) }}" data-cancel-form data-cancel-message="Cancel team {{ team.reference }}?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-danger btn-sm" type="submit">Cancel team</button>
+    </form>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="panel">
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><th>Reference</th><td>{{ team.reference }}</td></tr>
+        <tr><th>Status</th><td><span class="badge badge-{{ team.status }}">{{ team.status|capitalize }}</span>{% if team.is_demo %} <span class="badge badge-demo">Demo</span>{% endif %}</td></tr>
+        <tr><th>Event</th><td>{% if event %}<a href="{{ url_for('admin.event_detail', event_id=event.id) }}">{{ event.title }}</a>{% else %}—{% endif %}</td></tr>
+        <tr><th>Team name</th><td>{{ team.team_name }}</td></tr>
+        <tr><th>Leader</th><td>{{ team.leader_name }} ({{ team.leader_normalized_email }})</td></tr>
+        <tr><th>Leader phone</th><td>{{ team.leader_phone or '—' }}</td></tr>
+        <tr><th>Leader college</th><td>{{ team.leader_college or '—' }}</td></tr>
+        <tr><th>Registered</th><td>{{ registered_display.strftime('%d %b %Y %H:%M') if registered_display else '—' }}</td></tr>
+        {% if team.cancelled_at %}
+          <tr><th>Cancelled</th><td>{{ team.cancelled_at.strftime('%d %b %Y %H:%M') }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Members</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+      <tbody>
+        {% for m in members %}
+          <tr>
+            <td>{{ m.full_name }}</td>
+            <td>{{ m.email }}</td>
+            <td><span class="badge badge-{{ 'published' if m.role == 'leader' else 'category' }}">{{ m.role|capitalize }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if team.answers %}
+<div class="panel">
+  <h2>Custom field answers</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Answer</th></tr></thead>
+      <tbody>
+        {% for a in team.answers %}
+          <tr><td>{{ a.field_label }}</td><td>{{ a.value_text }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
