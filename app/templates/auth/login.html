@@ -1,30 +1,46 @@
-{% extends "admin/base_admin.html" %}
-{% block title %}Admin Login · EventHub{% endblock %}
-{% block body_class %}auth-body{% endblock %}
-{% block body %}
-<div class="auth-wrap">
+{% extends "base.html" %}
+{% block title %}Login · {{ settings.festival_name if settings else 'VibeFest' }}{% endblock %}
+{% block meta_description %}Sign in to EventHub to manage events and registrations for {{ settings.festival_name if settings else 'VibeFest' }}.{% endblock %}
+{% block content %}
+
+<section class="auth-page">
   <div class="auth-card">
-    <h1>EventHub Admin</h1>
-    <p class="sub">Sign in to manage events and registrations</p>
+    <a class="auth-brand" href="{{ url_for('public.index') }}">Event<em>Hub</em></a>
+    <p class="eyebrow">{{ settings.festival_name if settings else 'VibeFest' }} · Event management</p>
+    <h1>Welcome Back</h1>
+    <p class="sub">Sign in to manage events, track registrations and keep the festival running.</p>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
-    <form method="post">
+
+    <form method="post" autocomplete="on">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-group">
-        <label for="username">Username</label>
-        <input class="form-control" id="username" name="username" required autocomplete="username">
+        <label for="email">Email</label>
+        <input class="form-control" type="email" id="email" name="email" required autofocus
+               autocomplete="email" aria-describedby="email-hint">
+        <p class="hint" id="email-hint">The email registered for your EventHub account.</p>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input class="form-control" type="password" id="password" name="password" required autocomplete="current-password">
+        <div class="password-wrap">
+          <input class="form-control" type="password" id="password" name="password" required
+                 autocomplete="current-password">
+          <button type="button" class="password-toggle" data-password-toggle
+                  aria-controls="password" aria-pressed="false">Show</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary btn-block">Sign in</button>
     </form>
+
+    <p class="auth-foot">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
+    <p class="auth-foot"><a href="{{ url_for('public.index') }}">&larr; Back to the festival homepage</a></p>
   </div>
-</div>
+</section>
+
 {% endblock %}

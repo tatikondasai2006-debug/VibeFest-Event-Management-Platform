@@ -13,3 +13,4 @@ instance/
 .coverage
 htmlcov/
 flask.py
+*.log

@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, jsonify, render_template, request
+from flask_login import login_required
 
 from app.extensions import db, limiter
 from app.models import (
@@ -70,6 +71,7 @@ def index():
 
 
 @public_bp.route("/events")
+@login_required
 def events():
     settings = FestivalSettings.get()
     tz = settings.display_timezone

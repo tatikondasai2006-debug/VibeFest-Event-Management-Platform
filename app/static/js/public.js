@@ -174,10 +174,87 @@
     syncAddButton();
   }
 
+  /* ---------- hero background video: honour motion / data preferences ---------- */
+  function initHeroVideo() {
+    var video = document.querySelector("[data-hero-video]");
+    if (!video) return;
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var narrow = window.matchMedia("(max-width: 860px)");
+    var saveData = !!(navigator.connection && navigator.connection.saveData);
+
+    /* The video always autoplays muted (browsers block autoplay with sound).
+       Sound is opt-in via the toggle button, which is the required user gesture. */
+    var toggle = document.querySelector("[data-hero-audio-toggle]");
+    var label = document.querySelector("[data-hero-audio-label]");
+
+    function reflectAudio() {
+      if (!toggle) return;
+      var on = !video.muted;
+      toggle.setAttribute("aria-pressed", on ? "true" : "false");
+      toggle.setAttribute("aria-label", (on ? "Mute" : "Unmute") + " background video");
+      if (label) label.textContent = on ? "Mute" : "Unmute";
+    }
+
+    function setAudio(on) {
+      video.muted = !on;
+      if (on) {
+        var attempt = video.play();
+        if (attempt && typeof attempt.catch === "function") attempt.catch(function () {});
+      }
+      reflectAudio();
+    }
+
+    if (toggle) {
+      reflectAudio();
+      toggle.addEventListener("click", function () {
+        setAudio(video.muted);
+      });
+      video.addEventListener("volumechange", reflectAudio);
+    }
+
+    function apply() {
+      if (reduceMotion.matches || narrow.matches || saveData) {
+        video.pause();
+        video.removeAttribute("autoplay");
+        video.preload = "none";
+        if (toggle) toggle.hidden = true;
+      } else {
+        video.setAttribute("autoplay", "");
+        video.preload = "metadata";
+        if (toggle) toggle.hidden = false;
+        var attempt = video.play();
+        if (attempt && typeof attempt.catch === "function") attempt.catch(function () {});
+      }
+    }
+
+    apply();
+    if (typeof reduceMotion.addEventListener === "function") {
+      reduceMotion.addEventListener("change", apply);
+      narrow.addEventListener("change", apply);
+    }
+  }
+
+  /* ---------- login: password show/hide ---------- */
+  function initPasswordToggle() {
+    var btn = document.querySelector("[data-password-toggle]");
+    if (!btn) return;
+    var input = document.getElementById(btn.getAttribute("aria-controls"));
+    if (!input) return;
+    btn.addEventListener("click", function () {
+      var revealing = input.type === "password";
+      input.type = revealing ? "text" : "password";
+      btn.textContent = revealing ? "Hide" : "Show";
+      btn.setAttribute("aria-pressed", revealing ? "true" : "false");
+      input.focus();
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initLiveCounts();
     initEventCounts();
     initCountdown();
     initTeamBuilder();
+    initHeroVideo();
+    initPasswordToggle();
   });
 })();

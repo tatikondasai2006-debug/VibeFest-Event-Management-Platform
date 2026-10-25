@@ -7,8 +7,9 @@ from werkzeug.security import check_password_hash
 
 from app.db import configure_sqlite_engine
 from app.extensions import csrf, db, limiter, login_manager, migrate
-from app.models import AdminUser, FestivalSettings
+from app.models import AdminUser, FestivalSettings, Member
 from app.services.seed import seed_demo_data
+from app.utils import is_valid_email
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -39,10 +40,20 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @login_manager.user_loader
     def _load_user(user_id):
+        """Resolve both admin and member sessions from the namespaced id."""
+        if not isinstance(user_id, str) or ":" not in user_id:
+            # Backwards compatibility for the old bare-integer admin sessions.
+            try:
+                return db.session.get(AdminUser, int(user_id))
+            except (TypeError, ValueError):
+                return None
+        kind, _, raw = user_id.partition(":")
         try:
-            return db.session.get(AdminUser, int(user_id))
+            pk = int(raw)
         except (TypeError, ValueError):
             return None
+        model = {"admin": AdminUser, "member": Member}.get(kind)
+        return db.session.get(model, pk) if model else None
 
     csrf.init_app(app)
     limiter.init_app(app)
@@ -62,10 +73,12 @@ def create_app(config_name: str | None = None) -> Flask:
 def _register_blueprints(app: Flask) -> None:
     from app.admin.routes import admin_bp
     from app.auth.routes import auth_bp
+    from app.member.routes import member_bp
     from app.public.routes import public_bp
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(member_bp)
     app.register_blueprint(admin_bp)
 
 
@@ -89,6 +102,14 @@ def _register_cli(app: Flask) -> None:
             click.echo(f"An admin with username '{username}' already exists.")
             sys.exit(1)
 
+        email = click.prompt("Admin email").strip()
+        if not is_valid_email(email):
+            click.echo("That does not look like a valid email address.")
+            sys.exit(1)
+        if AdminUser.query.filter_by(email=email).first():
+            click.echo(f"An admin with email '{email}' already exists.")
+            sys.exit(1)
+
         while True:
             password = click.prompt("Password", hide_input=True, confirmation_prompt=True)
             if len(password) < 8:
@@ -99,7 +120,7 @@ def _register_cli(app: Flask) -> None:
                 continue
             break
 
-        admin = AdminUser(username=username)
+        admin = AdminUser(username=username, email=email)
         admin.set_password(password)
         db.session.add(admin)
         db.session.commit()

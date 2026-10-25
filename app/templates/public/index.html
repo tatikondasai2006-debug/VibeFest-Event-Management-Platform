@@ -1,15 +1,62 @@
 {% extends "base.html" %}
 {% block title %}{{ settings.festival_name }} — {{ settings.tagline }}{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
 {% block content %}
 
 {# ---------- Hero ---------- #}
-<section class="hero">
-  <div class="container">
+<section class="hero hero-full">
+  <div class="hero-media" aria-hidden="true">
+    <video
+      class="hero-video"
+      data-hero-video
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="{{ url_for('static', filename='img/hero-poster.jpg') }}"
+    >
+      <source src="{{ url_for('static', filename='video/hero-loop.mp4') }}" type="video/mp4">
+    </video>
+    <div class="hero-scrim"></div>
+  </div>
+
+  <button type="button" class="hero-audio-toggle" data-hero-audio-toggle
+          aria-pressed="false" aria-label="Unmute background video">
+    <span class="hero-audio-icon" aria-hidden="true">&#128263;</span>
+    <span class="hero-audio-label" data-hero-audio-label>Unmute</span>
+  </button>
+
+  <div class="container hero-nav-wrap">
+    <nav class="hero-nav" aria-label="Primary">
+      <a class="wordmark" href="{{ url_for('public.index') }}"><img class="wordmark-logo" src="{{ url_for('static', filename='img/vibefest-logo.png') }}" alt="" width="60" height="40">{{ settings.festival_name if settings else 'VibeFest' }}</a>
+      {% if current_user.is_authenticated %}
+        <span class="hero-nav-links">
+          <a href="{{ url_for('public.index') }}">Home</a>
+          <a href="{{ url_for('public.events') }}">Events</a>
+          <a href="{{ url_for('public.about') }}">About</a>
+          <a href="{{ url_for('public.contact') }}">Contact</a>
+          <a class="btn btn-lime btn-sm" href="{{ url_for('public.events') }}">Register now</a>
+          <a href="{{ url_for('admin.dashboard') }}">Admin</a>
+        </span>
+      {% else %}
+        <span class="hero-nav-actions">
+          <a class="btn btn-primary" href="{{ url_for('public.events') }}">Open App</a>
+          <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Sign In</a>
+          <a class="btn btn-ghost" href="{{ url_for('auth.signup') }}">Create account</a>
+        </span>
+      {% endif %}
+    </nav>
+  </div>
+
+  <div class="container hero-full-main">
     <div class="hero-grid">
       <div>
-        <p class="tagline">{{ settings.tagline }}</p>
-        <h1>{{ settings.festival_name }}</h1>
-        <p class="lead">Five days of technology, culture, games, art and unforgettable nights. Register for events, claim your spot and own the stage.</p>
+        <p class="eyebrow">{{ settings.festival_name if settings else 'VibeFest' }} · Techno-Cultural Festival</p>
+        <h1>{{ settings.tagline if settings else 'Find Your Vibe. Own the Stage.' }}</h1>
+        <p class="lead">Five days of technology, culture, games, art and unforgettable nights.</p>
+        <p class="lead-sub">Discover events, register for competitions and experience the festival.</p>
 
         {% set target = settings.countdown_target() %}
         {% if target %}
@@ -23,11 +70,6 @@
           <p class="text-muted" style="color:#C9C2D4">Festival dates to be announced — check back soon.</p>
         {% endif %}
 
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="{{ url_for('public.events') }}">Browse events</a>
-          <a class="btn btn-lime" href="#categories">Explore categories</a>
-        </div>
-
         <div class="hero-meta">
           {% if settings.start_date %}
             <div><strong>{{ settings.start_date.strftime('%d %b %Y') }}{% if settings.end_date %} – {{ settings.end_date.strftime('%d %b %Y') }}{% endif %}</strong> Festival dates</div>
@@ -36,133 +78,7 @@
           {% if settings.college_name %}<div><strong>{{ settings.college_name }}</strong>Organiser</div>{% endif %}
         </div>
       </div>
-      <div class="hero-art">
-        <img src="{{ url_for('static', filename='img/hero.svg') }}" alt="Abstract festival artwork with colourful geometric shapes on a dark background" width="640" height="480">
-      </div>
     </div>
   </div>
 </section>
-
-{# ---------- Live registration summary ---------- #}
-<div class="live-strip" data-live-summary aria-live="polite">
-  <div class="container">
-    <span><span class="live-dot" aria-hidden="true"></span>Live registration summary</span>
-    <span><span data-live-registrations>{{ total_confirmed }}</span> individual registrations</span>
-    <span><span data-live-teams>{{ total_teams }}</span> team registrations</span>
-    <span><span data-live-events>{{ total_events }}</span> published events</span>
-  </div>
-</div>
-
-{# ---------- Festival overview ---------- #}
-<section class="section section-alt" id="overview">
-  <div class="container">
-    <div class="section-head">
-      <h2>The festival at a glance</h2>
-      <p>{{ settings.festival_name }} brings together students from every discipline for competitions, showcases and workshops. Every event below is managed through EventHub — register once and keep your confirmation reference safe.</p>
-    </div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
-      <div class="kpi-card accent-orange"><div class="kpi-label">Published events</div><div class="kpi-value">{{ total_events }}</div></div>
-      <div class="kpi-card accent-aqua"><div class="kpi-label">Individual registrations</div><div class="kpi-value">{{ total_confirmed }}</div></div>
-      <div class="kpi-card accent-orchid"><div class="kpi-label">Team registrations</div><div class="kpi-value">{{ total_teams }}</div></div>
-      <div class="kpi-card accent-lime"><div class="kpi-label">Categories</div><div class="kpi-value">{{ category_cards|length }}</div></div>
-    </div>
-  </div>
-</section>
-
-{# ---------- Categories ---------- #}
-<section class="section" id="categories">
-  <div class="container">
-    <div class="section-head">
-      <h2>Explore by category</h2>
-      <p>Five worlds, one festival. Pick a category to see its events.</p>
-    </div>
-    <div class="category-grid">
-      {% for cat in category_cards %}
-        <a class="category-card cat-{{ cat.key }}" href="{{ url_for('public.events', category=cat.key) }}">
-          <h3>{{ cat.label }}</h3>
-          <div class="count">{{ cat.count }} event{{ 's' if cat.count != 1 }}</div>
-        </a>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-{# ---------- Featured events ---------- #}
-<section class="section section-alt" id="featured">
-  <div class="container">
-    <div class="section-head">
-      <h2>Featured events</h2>
-      <p>Registration is open for these events right now.</p>
-    </div>
-    {% if featured %}
-      <div class="event-grid">
-        {% for card in featured %}
-          {% include "public/_event_card.html" %}
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-state">
-        <h3>No open events yet</h3>
-        <p>New events will appear here as soon as they are published.</p>
-      </div>
-    {% endif %}
-    <p class="mt-3"><a class="btn btn-outline" href="{{ url_for('public.events') }}">View all events</a></p>
-  </div>
-</section>
-
-{# ---------- About ---------- #}
-<section class="section" id="about">
-  <div class="container">
-    <div class="section-head">
-      <h2>About {{ settings.festival_name }}</h2>
-      <p>{{ settings.festival_name }} is a student-run techno-cultural festival. It exists to give every student a stage — whether you code, dance, game, paint or simply soak in the vibe. Events are open to enrolled students and staff; each registration is confirmed instantly with a unique reference.</p>
-    </div>
-  </div>
-</section>
-
-{# ---------- FAQs ---------- #}
-<section class="section section-alt" id="faqs">
-  <div class="container-narrow">
-    <div class="section-head" style="margin-left:auto;margin-right:auto;text-align:center">
-      <h2>Frequently asked questions</h2>
-    </div>
-    <div class="faq-list">
-      <details>
-        <summary>How do I register for an event?</summary>
-        <div class="faq-answer">Open any published event, click “Register”, fill in your details and consent to the privacy notice. You will receive a unique confirmation reference immediately.</div>
-      </details>
-      <details>
-        <summary>Can I register with the same email twice?</summary>
-        <div class="faq-answer">No. Each email address can register once per event. If you need to change your details, contact the event organisers.</div>
-      </details>
-      <details>
-        <summary>What happens when an event is full?</summary>
-        <div class="faq-answer">When all {{ 'capacity units' }} are taken, registration closes automatically. Seat counts on every event page come straight from the database, so what you see is accurate.</div>
-      </details>
-      <details>
-        <summary>Is there a registration fee?</summary>
-        <div class="faq-answer">Any fees, if applicable, are shown on the individual event page as informational text only. This site does not process payments.</div>
-      </details>
-      <details>
-        <summary>How is my data used?</summary>
-        <div class="faq-answer">We store only what is needed to run the event: your name, email, phone and college details. Data is never shown publicly and is available only to event administrators.</div>
-      </details>
-    </div>
-  </div>
-</section>
-
-{# ---------- Venue ---------- #}
-{% if settings.venue %}
-<section class="section" id="venue">
-  <div class="container">
-    <div class="section-head">
-      <h2>Venue &amp; practical information</h2>
-      <p><strong>{{ settings.venue }}</strong>
-      {% if settings.college_name %} — {{ settings.college_name }}{% endif %}</p>
-      {% if settings.registration_instructions %}<p>{{ settings.registration_instructions }}</p>{% endif %}
-      {% if settings.start_date %}<p>Festival runs from <strong>{{ settings.start_date.strftime('%d %b %Y') }}</strong>{% if settings.end_date %} to <strong>{{ settings.end_date.strftime('%d %b %Y') }}</strong>{% endif %} ({{ settings.display_timezone }}).</p>{% endif %}
-    </div>
-  </div>
-</section>
-{% endif %}
 {% endblock %}

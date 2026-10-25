@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VibeFest logo">
+  <defs>
+    <linearGradient id="vf-bars" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF6B35"/>
+      <stop offset="0.5" stop-color="#EAA7FF"/>
+      <stop offset="1" stop-color="#E8FF66"/>
+    </linearGradient>
+  </defs>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16" fill="#211B2B" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="3"/>
+  <g fill="url(#vf-bars)">
+    <rect x="6.5" y="16" width="7" height="34" rx="3.5"/>
+    <rect x="17.5" y="26" width="7" height="24" rx="3.5"/>
+    <rect x="28.5" y="36" width="7" height="14" rx="3.5"/>
+    <rect x="39.5" y="26" width="7" height="24" rx="3.5"/>
+    <rect x="50.5" y="16" width="7" height="34" rx="3.5"/>
+  </g>
+</svg>

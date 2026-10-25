@@ -39,14 +39,72 @@ class AdminUser(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(200), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    role = "admin"
+
+    @validates("email")
+    def _set_email(self, key, value):
+        return normalize_email(value)
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+
+    def get_id(self) -> str:
+        """Namespace the session id so admin and member ids never collide."""
+        return f"admin:{self.id}"
+
+
+class Member(UserMixin, db.Model):
+    """Self-service attendee account: signs up, then views/cancels their own registrations."""
+
+    __tablename__ = "member"
+
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(200), unique=True, nullable=False, index=True)
+    phone = db.Column(db.String(30), nullable=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    role = "member"
+
+    @validates("email")
+    def _set_email(self, key, value):
+        return normalize_email(value)
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def get_id(self) -> str:
+        return f"member:{self.id}"
+
+    @property
+    def registrations(self):
+        return (
+            Registration.query.filter(
+                Registration.normalized_email == self.email
+            )
+            .order_by(Registration.created_at.desc())
+            .all()
+        )
+
+    @property
+    def teams(self):
+        return (
+            Team.query.join(TeamMember, TeamMember.team_id == Team.id)
+            .filter(TeamMember.normalized_email == self.email)
+            .order_by(Team.created_at.desc())
+            .all()
+        )
 
 
 class FestivalSettings(db.Model):

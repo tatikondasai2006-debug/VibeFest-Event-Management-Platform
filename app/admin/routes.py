@@ -46,7 +46,9 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 @admin_bp.before_request
 @login_required
 def require_admin():
-    pass
+    """Only administrator accounts may use the admin console."""
+    if getattr(current_user, "role", None) != "admin":
+        abort(403)
 
 
 def _tz() -> str:
